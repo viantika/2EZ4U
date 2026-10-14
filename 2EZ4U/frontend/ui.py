@@ -1,9 +1,3 @@
-"""
-Frontend Tkinter untuk Aplikasi '2EZ4U Food Delivery'.
-Tema: Blackpink Edition (Obsidian Charcoal, Deep Pitch Black & Electric Hot Pink).
-Mengimplementasikan antarmuka grafis untuk Milestone 1 s/d Milestone 3.
-Hanya memanggil fungsi-fungsi backend (M1, M2, M3).
-"""
 import tkinter as tk
 from tkinter import ttk, messagebox
 import threading
@@ -27,13 +21,11 @@ from backend.m3_laporan import (
 
 
 def format_ms(ms_val):
-    """Format milidetik dengan desimal koma: 9.92 -> '9,92 ms'."""
     s = f"{ms_val:.2f}".replace('.', ',')
     return f"{s} ms"
 
 
 class App2EZ4U(tk.Tk):
-    """Jendela utama aplikasi 2EZ4U Food Delivery (Blackpink Theme)."""
 
     def __init__(self):
         super().__init__()
@@ -41,7 +33,6 @@ class App2EZ4U(tk.Tk):
         self.geometry("1180x760")
         self.minsize(1000, 680)
 
-        # Inisialisasi Backend Manager
         self.mp = ManajerPesanan()
         self.ma = ManajerAntrean()
         self.ma.set_manajer_pesanan(self.mp)
@@ -55,14 +46,12 @@ class App2EZ4U(tk.Tk):
         self._pilih_menu("LOAD")
 
     def _atur_gaya(self):
-        """Konfigurasi style ttk bertema Blackpink (Obsidian Black & Electric Hot Pink)."""
         self.style = ttk.Style()
         try:
             self.style.theme_use("clam")
         except Exception:
             pass
 
-        # Palet Warna Khas Blackpink
         self.c_bg_dark = "#09090d"        # Pitch Black / Obsidian
         self.c_card_dark = "#14141c"      # Dark Charcoal Panel
         self.c_sidebar_dark = "#0f0f15"   # Sidebar Charcoal
@@ -127,7 +116,6 @@ class App2EZ4U(tk.Tk):
         self.style.configure("TCombobox", fieldbackground="#1f1f2b", foreground="#ffffff")
 
     def _bangun_ui(self):
-        """Membangun layout tiga bagian dengan tema Blackpink."""
         # 1. Header Atas
         header_frame = ttk.Frame(self, style="Header.TFrame", padding=(16, 9))
         header_frame.pack(fill="x", side="top")
@@ -238,7 +226,6 @@ class App2EZ4U(tk.Tk):
         self.lbl_catatan.pack(fill="x")
 
     def _buat_daftar_menu(self, parent):
-        """Membuat tombol menu di panel kiri berdesain Blackpink."""
         daftar_grup = [
             ("DATA", [
                 ("Load", "LOAD"),
@@ -297,7 +284,6 @@ class App2EZ4U(tk.Tk):
                     self.tombol_menu_dict[kode_menu] = btn
 
     def catat_command(self, cmd_nama, modul_singkat, waktu_ms, catatan_edukatif=None):
-        """Menambahkan catatan eksekusi ke panel COMMAND berformat khas Blackpink."""
         waktu_str = format_ms(waktu_ms)
         baris = f"{cmd_nama:<24} -> {modul_singkat:<22} {waktu_str}\n"
 
@@ -305,21 +291,17 @@ class App2EZ4U(tk.Tk):
         self.txt_command.insert("1.0", baris)
         self.txt_command.config(state="disabled")
 
-        # Update badge pojok kiri bawah
         self.lbl_badge.config(text=f"[{modul_singkat}]  {waktu_str}")
 
-        # Update catatan edukatif pojok kanan bawah jika ada
         if catatan_edukatif:
             self.lbl_catatan.config(text=catatan_edukatif)
 
     def _bersihkan_form(self):
-        """Menghapus widget di dalam form parameter."""
         for w in self.form_inputs_frame.winfo_children():
             w.destroy()
         self.lbl_ringkasan_hasil.config(text="")
 
     def _bersihkan_tabel(self, kolom_list, judul_list=None):
-        """Menyiapkan kolom tabel baru dan menghapus isi sebelumnya."""
         for row in self.tree.get_children():
             self.tree.delete(row)
 
@@ -345,7 +327,6 @@ class App2EZ4U(tk.Tk):
                 self.tree.column(col, width=110, anchor="w")
 
     def _tampilkan_pesanan_ke_tabel(self, daftar_pesanan, mulai_no=1):
-        """Menampilkan list of Pesanan ke treeview dengan kolom lengkap."""
         kolom = ["#", "oid", "pelanggan", "resto", "menu", "harga", "prioritas", "masuk", "selesai", "status"]
         self._bersihkan_tabel(kolom, ["#", "oid", "pelanggan", "resto", "menu", "harga", "prioritas", "masuk", "selesai", "status"])
 
@@ -365,21 +346,15 @@ class App2EZ4U(tk.Tk):
             ))
 
     def _tampilkan_tabel_kv(self, rincian_kv):
-        """Menampilkan tabel format 2-kolom: kolom | isi."""
         self._bersihkan_tabel(["kolom", "isi"], ["kolom", "isi"])
         for k, v in rincian_kv:
             self.tree.insert("", "end", values=(k, v))
 
     def _validasi_muat_data(self):
-        """Memeriksa apakah CSV sudah dimuat."""
         if not self.mp.sudah_dimuat:
             messagebox.showwarning("Perhatian", "Data belum dimuat! Silakan klik menu 'DATA -> Load' terlebih dahulu.")
             return False
         return True
-
-    # ============================================================
-    #  ROUTER PEMILIHAN MENU
-    # ============================================================
 
     def _pilih_menu(self, kode):
         self.menu_aktif = kode
@@ -414,10 +389,6 @@ class App2EZ4U(tk.Tk):
             self._form_sort(kode)
         elif kode in ("SEARCH_LINEAR", "SEARCH_BINARY"):
             self._form_search(kode)
-
-    # ============================================================
-    #  FORM & HANDLER MENU: LOAD
-    # ============================================================
 
     def _form_load(self):
         self.lbl_judul_menu.config(text="DATA: Muat Dataset Pesanan")
@@ -460,10 +431,6 @@ class App2EZ4U(tk.Tk):
             self.after(0, _selesai)
 
         threading.Thread(target=_worker, daemon=True).start()
-
-    # ============================================================
-    #  FORM & HANDLER MENU: M1 LIHAT
-    # ============================================================
 
     def _form_lihat(self, kode):
         is_arr = "ARR" in kode
@@ -516,10 +483,6 @@ class App2EZ4U(tk.Tk):
         self._tampilkan_pesanan_ke_tabel(hasil, mulai_no=idx + 1)
         self.lbl_ringkasan_hasil.config(text=f"✓ Menampilkan {len(hasil)} pesanan mulai indeks {idx} (Waktu: {format_ms(waktu_ms)})", foreground=self.c_pink_luminous)
         self.catat_command(cmd_nama, modul_singkat, waktu_ms, note)
-
-    # ============================================================
-    #  FORM & HANDLER MENU: M1 TAMBAH (REGULER, PRIORITAS, VIP)
-    # ============================================================
 
     def _form_tambah(self, kode):
         is_arr = "ARR" in kode
@@ -594,7 +557,6 @@ class App2EZ4U(tk.Tk):
             pos_a, w_a, ges_a, mod_a = res_arr
             pos_l, w_l, tra_l, mod_l = res_ll
 
-            # Masukkan juga ke antrean M2
             self.ma.enqueue(p)
 
             msg = (f"{p.oid} masuk ke barisan pada KEDUA struktur data.\n"
@@ -650,10 +612,6 @@ class App2EZ4U(tk.Tk):
             ]
             self._tampilkan_tabel_kv(rincian)
 
-    # ============================================================
-    #  FORM & HANDLER MENU: M1 HAPUS
-    # ============================================================
-
     def _form_hapus(self, kode):
         is_arr = "ARR" in kode
         tipe = "Array" if is_arr else "LinkedList"
@@ -706,10 +664,6 @@ class App2EZ4U(tk.Tk):
         self.catat_command(cmd_nama, mod_singkat, waktu_ms, note)
         self._tampilkan_pesanan_ke_tabel([val], mulai_no=idx + 1)
 
-    # ============================================================
-    #  FORM & HANDLER MENU: M2 POSTFIX (MESIN KASIR)
-    # ============================================================
-
     def _form_postfix(self):
         self.lbl_judul_menu.config(text="Stack: hitung struk lewat postfix")
         self.lbl_deskripsi_menu.config(text="Struk ditulis infix (dihitung dua tahap dengan stack: tahap 1 Infix menjadi postfix, tahap 2 postfix dievaluasi)")
@@ -752,10 +706,6 @@ class App2EZ4U(tk.Tk):
 
         for row in tabel_langkah:
             self.tree.insert("", "end", values=row)
-
-    # ============================================================
-    #  FORM & HANDLER MENU: M2 UNDO / REDO
-    # ============================================================
 
     def _form_undo_redo(self, kode):
         is_undo = kode == "STACK_UNDO"
@@ -838,10 +788,6 @@ class App2EZ4U(tk.Tk):
         self._bersihkan_tabel(kolom, ["#", "oid", "pelanggan", "resto", "menu"])
         for i, p in enumerate(daftar_pesanan, 1):
             self.tree.insert("", "end", values=(i, p.oid, p.pelanggan, p.resto, p.menu))
-
-    # ============================================================
-    #  FORM & HANDLER MENU: M2 QUEUE (ENQUEUE & DEQUEUE)
-    # ============================================================
 
     def _form_enqueue(self):
         self.lbl_judul_menu.config(text="Queue: pesanan baru masuk ke belakang")
@@ -972,7 +918,6 @@ class App2EZ4U(tk.Tk):
         self.lbl_ringkasan_hasil.config(text=res_teks, foreground=self.c_pink_luminous)
         self.catat_command(cmd_nama, mod_singkat, waktu_ms, catatan)
 
-        # Tabel 6 kolom: #, oid, pelanggan, resto, menu, masuk
         kolom = ["#", "oid", "pelanggan", "resto", "menu", "masuk"]
         self._bersihkan_tabel(kolom, ["#", "oid", "pelanggan", "resto", "menu", "masuk"])
         for i, p in enumerate(daftar, 1):
@@ -984,10 +929,6 @@ class App2EZ4U(tk.Tk):
                 p.menu,
                 format_waktu(p.t_masuk_detik)
             ))
-
-    # ============================================================
-    #  FORM & HANDLER MENU: M3 SORTING (INSERTION & MERGE)
-    # ============================================================
 
     def _form_sort(self, kode):
         is_ins = kode == "SORT_INSERTION"
@@ -1087,10 +1028,6 @@ class App2EZ4U(tk.Tk):
 
         threading.Thread(target=_worker, daemon=True).start()
 
-    # ============================================================
-    #  FORM & HANDLER MENU: M3 SEARCHING (LINEAR & BINARY)
-    # ============================================================
-
     def _form_search(self, kode):
         is_lin = kode == "SEARCH_LINEAR"
         if is_lin:
@@ -1158,7 +1095,6 @@ class App2EZ4U(tk.Tk):
         self.lbl_ringkasan_hasil.config(text=res_teks, foreground=self.c_pink_luminous)
         self.catat_command(cmd_nama, mod_singkat, waktu_ms, catatan)
 
-        # Format tabel 2-kolom: kolom | isi
         rincian = [
             ("oid", p.oid),
             ("pelanggan", p.pelanggan),
@@ -1174,7 +1110,6 @@ class App2EZ4U(tk.Tk):
 
 
 def jalankan_aplikasi():
-    """Entry point untuk menjalankan GUI."""
     app = App2EZ4U()
     app.mainloop()
 
