@@ -1,35 +1,14 @@
-"""
-Modul Generator Data Pesanan CSV untuk Sistem Pengiriman Makanan 2EZ4U.
-
-Modul ini bertanggung jawab untuk menghasilkan berkas CSV berisi data pesanan
-dalam skala besar (200.000 baris) dengan konfigurasi yang realistis dan konsisten.
-Seluruh logika dibuat berbasis OOP serta mematuhi batasan struktur data.
-"""
-
 import csv
 import os
 import random
 
 
 class GeneratorDataPesanan:
-    """
-    Kelas generator data pesanan pengiriman makanan berbasis OOP.
-    
-    Menghasilkan data pesanan dengan distribusi prioritas, status transaksi,
-    durasi waktu penyelesaian, dan nama pelanggan yang realistis.
-    """
-
     def __init__(self, seed: int = 42):
-        """
-        Inisialisasi generator dengan seed acak untuk memastikan hasil reproduktif.
-        
-        Args:
-            seed (int): Nilai seed acak (standar: 42).
-        """
+
         self._seed = seed
         random.seed(self._seed)
 
-        # Daftar restoran mitra sesuai simpul pada peta kampus (peta.csv)
         self._daftar_resto = (
             "kantin-pusat",
             "kafe-teknik",
@@ -39,7 +18,6 @@ class GeneratorDataPesanan:
             "bakso-pak-yon",
         )
 
-        # Daftar katalog menu beserta harga (dalam Rupiah)
         self._daftar_menu = (
             ("nasi-goreng", 15000),
             ("mie-goreng", 13000),
@@ -67,7 +45,6 @@ class GeneratorDataPesanan:
             ("es-campur", 12000),
         )
 
-        # Kumpulan nama untuk variasi nama pelanggan Indonesia
         self._awalan_gelar = (
             "", "", "", "", "", "",
             "Dr. ", "Drs. ", "Ir. ", "H. ", "Hj. ", "R. ", "Tgk. ", "Dt. ",
@@ -107,13 +84,6 @@ class GeneratorDataPesanan:
         )
 
     def buat_nama_pelanggan(self) -> str:
-        """
-        Menghasilkan nama pelanggan acak lengkap dengan gelar/kehormatan.
-        Nama yang mengandung koma (gelar belakang) akan otomatis dikutip oleh csv.writer.
-        
-        Returns:
-            str: Nama pelanggan lengkap.
-        """
         prefix = random.choice(self._awalan_gelar)
         depan = random.choice(self._nama_depan)
         belakang = random.choice(self._nama_belakang)
@@ -121,22 +91,6 @@ class GeneratorDataPesanan:
         return f"{prefix}{depan} {belakang}{suffix}"
 
     def buat_pesanan(self, nomor_urutan: int) -> tuple:
-        """
-        Menghasilkan satu data baris pesanan sesuai aturan distribusi.
-        
-        Aturan:
-        - oid: O-000001 s.d. O-200000
-        - prioritas: 1=VIP (~5%), 2=Prioritas (~15%), 3=Reguler (~80%)
-        - t_masuk_detik: 0 s.d. 86399 (detik dalam satu hari)
-        - status: DONE (~70%), CANCEL (~20%), ANTRE (~10%)
-        - t_selesai_detik: kosong untuk ANTRE, masuk+120-3600 untuk DONE, masuk+30-600 untuk CANCEL
-        
-        Args:
-            nomor_urutan (int): Nomor urutan pesanan (1-indexed).
-            
-        Returns:
-            tuple: Tuple berisi kolom data pesanan.
-        """
         oid = f"O-{nomor_urutan:06d}"
         pelanggan = self.buat_nama_pelanggan()
         resto = random.choice(self._daftar_resto)
@@ -145,7 +99,6 @@ class GeneratorDataPesanan:
         menu_nama = menu_item[0]
         harga = menu_item[1]
 
-        # Distribusi prioritas: ~5% VIP (1), ~15% Prioritas (2), ~80% Reguler (3)
         rand_prioritas = random.randint(1, 100)
         if rand_prioritas <= 5:
             prioritas = 1
@@ -154,10 +107,8 @@ class GeneratorDataPesanan:
         else:
             prioritas = 3
 
-        # Waktu masuk pesanan (0 s.d. 86399 detik dalam sehari)
         t_masuk_detik = random.randint(0, 86399)
 
-        # Distribusi status: ~70% DONE, ~20% CANCEL, ~10% ANTRE
         rand_status = random.randint(1, 100)
         if rand_status <= 70:
             status = "DONE"
@@ -182,13 +133,6 @@ class GeneratorDataPesanan:
         )
 
     def generate_csv(self, jalur_berkas: str, total_baris: int = 200000) -> None:
-        """
-        Menuliskan seluruh data pesanan ke dalam berkas CSV.
-        
-        Args:
-            jalur_berkas (str): Jalur berkas CSV tujuan.
-            total_baris (int): Jumlah baris data yang ingin dihasilkan.
-        """
         folder_tujuan = os.path.dirname(jalur_berkas)
         if folder_tujuan and not os.path.exists(folder_tujuan):
             os.makedirs(folder_tujuan, exist_ok=True)
@@ -225,7 +169,6 @@ class GeneratorDataPesanan:
 
 
 def main() -> None:
-    """Fungsi utama untuk menjalankan pembuatan berkas CSV pesanan."""
     jalur_proyek = os.path.dirname(os.path.abspath(__file__))
     jalur_csv = os.path.join(jalur_proyek, "data", "pesanan.csv")
 
