@@ -1,7 +1,3 @@
-"""
-Tes unit untuk M3 - Sort dan Search.
-Jalankan: python -m unittest tests.test_m3
-"""
 import unittest
 import sys
 import os
@@ -17,13 +13,11 @@ from backend.m1_pesanan import Pesanan
 
 
 def _p(oid_num, harga=10000, selesai=100):
-    """Buat pesanan dummy."""
     return Pesanan(f"O-{oid_num:06d}", "Test", "Resto", "Menu",
                    harga, 3, 0, selesai if selesai else '', 'DONE')
 
 
 class TestInsertionSort(unittest.TestCase):
-    """Tes insertion sort."""
 
     def test_acak(self):
         data = [_p(i, harga=random.randint(1000, 50000))
@@ -57,15 +51,12 @@ class TestInsertionSort(unittest.TestCase):
         self.assertEqual(len(hasil), 20)
 
     def test_stabil(self):
-        """Dua kunci harga sama → urutan oid asal dipertahankan."""
         data = [_p(3, harga=5000), _p(1, harga=5000), _p(2, harga=5000)]
         hasil, _, _, _, _, _ = insertion_sort(list(data), 'harga')
-        # Urutan oid harus tetap: 3, 1, 2 (stabil)
         oids = [int(p.oid[2:]) for p in hasil]
         self.assertEqual(oids, [3, 1, 2])
 
     def test_tolak_lebih_dari_batas(self):
-        """Insertion sort menolak n > 20.000."""
         data = [_p(i) for i in range(BATAS_INSERTION + 1)]
         hasil, _, _, _, _, galat = insertion_sort(list(data), 'oid')
         self.assertIsNone(hasil)
@@ -78,7 +69,6 @@ class TestInsertionSort(unittest.TestCase):
 
 
 class TestMergeSort(unittest.TestCase):
-    """Tes merge sort."""
 
     def test_acak(self):
         data = [_p(i, harga=random.randint(1000, 50000))
@@ -109,7 +99,6 @@ class TestMergeSort(unittest.TestCase):
         self.assertEqual(len(hasil), 50)
 
     def test_stabil(self):
-        """Stabilitas: elemen kunci sama mempertahankan urutan asal."""
         data = [_p(3, harga=5000), _p(1, harga=5000), _p(2, harga=5000)]
         hasil, _, _, _, _, _ = merge_sort(list(data), 'harga')
         oids = [int(p.oid[2:]) for p in hasil]
@@ -122,7 +111,6 @@ class TestMergeSort(unittest.TestCase):
 
 
 class TestHasilIdentik(unittest.TestCase):
-    """Insertion sort dan merge sort menghasilkan urutan identik."""
 
     def test_identik(self):
         random.seed(99)
@@ -137,7 +125,6 @@ class TestHasilIdentik(unittest.TestCase):
 
 
 class TestLinearSearch(unittest.TestCase):
-    """Tes linear search."""
 
     def test_ditemukan_tengah(self):
         data = [_p(i) for i in range(1, 101)]
@@ -167,7 +154,6 @@ class TestLinearSearch(unittest.TestCase):
 
 
 class TestBinarySearch(unittest.TestCase):
-    """Tes binary search (data harus terurut oid)."""
 
     def _data_terurut(self, n=100):
         return [_p(i) for i in range(1, n + 1)]
@@ -199,14 +185,12 @@ class TestBinarySearch(unittest.TestCase):
         self.assertEqual(idx, -1)
 
     def test_perbandingan_sedikit(self):
-        """Binary search pada 100 elemen harus ≤ 7 perbandingan."""
         data = self._data_terurut()
         _, _, banding, _, _ = binary_search(data, "O-000050")
         self.assertLessEqual(banding, 7)
 
 
 class TestSortKunciSelesai(unittest.TestCase):
-    """Tes sorting dengan kunci 'selesai' — None di akhir."""
 
     def test_none_di_akhir(self):
         data = [
@@ -217,8 +201,6 @@ class TestSortKunciSelesai(unittest.TestCase):
             _p(5, selesai=200),
         ]
         hasil, _, _, _, _, _ = merge_sort(list(data), 'selesai')
-        # Yang punya waktu selesai harus di depan (terurut)
-        # None harus di akhir
         self.assertEqual(hasil[0].t_selesai_detik, 100)
         self.assertEqual(hasil[1].t_selesai_detik, 200)
         self.assertEqual(hasil[2].t_selesai_detik, 500)
@@ -227,10 +209,8 @@ class TestSortKunciSelesai(unittest.TestCase):
 
 
 class TestKataTermarang(unittest.TestCase):
-    """Pastikan backend tidak mengandung kata terlarang."""
 
     def test_tidak_ada_kata_terlarang(self):
-        """Cek backend/ tidak mengandung fungsi terlarang."""
         import re
         pola_terlarang = [
             r'\bsorted\s*\(',
