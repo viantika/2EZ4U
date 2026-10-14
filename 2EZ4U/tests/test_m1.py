@@ -1,7 +1,3 @@
-"""
-Tes unit untuk M1 - Array Dinamis dan Linked List.
-Jalankan: python -m unittest tests.test_m1
-"""
 import unittest
 import sys
 import os
@@ -12,7 +8,6 @@ from backend.m1_pesanan import (
     Array, LinkList, Node, Pesanan, Pencacah,
     ManajerPesanan, format_waktu, format_harga
 )
-
 
 class TestPencacah(unittest.TestCase):
     def test_inisialisasi(self):
@@ -53,8 +48,7 @@ class TestFormatHarga(unittest.TestCase):
 
 
 class TestArray(unittest.TestCase):
-    """Tes Array dinamis buatan sendiri."""
-
+    
     def test_append_dan_len(self):
         a = Array(4)
         for i in range(10):
@@ -62,26 +56,21 @@ class TestArray(unittest.TestCase):
         self.assertEqual(len(a), 10)
 
     def test_tumbuh_benar(self):
-        """Kapasitas awal 4, harus tumbuh: 4 → 8 → 16 saat penuh."""
         a = Array(4)
         self.assertEqual(a.kapasitas, 4)
 
-        # Isi 4 elemen → masih muat
         for i in range(4):
             a.append(i)
         self.assertEqual(a.kapasitas, 4)
 
-        # Tambah 1 lagi → tumbuh jadi 8
         a.append(4)
         self.assertEqual(a.kapasitas, 8)
         self.assertEqual(len(a), 5)
 
-        # Isi sampai 8 elemen
         for i in range(5, 8):
             a.append(i)
         self.assertEqual(a.kapasitas, 8)
 
-        # Tambah 1 lagi → tumbuh jadi 16
         a.append(8)
         self.assertEqual(a.kapasitas, 16)
         self.assertEqual(len(a), 9)
@@ -103,7 +92,6 @@ class TestArray(unittest.TestCase):
             a.get(-1)
 
     def test_insert_awal(self):
-        """Insert di indeks 0 (VIP) — harus geser semua."""
         a = Array(4)
         for i in range(3):
             a.append(i)  # [0, 1, 2]
@@ -115,7 +103,6 @@ class TestArray(unittest.TestCase):
         self.assertEqual(p.n, 3)  # 3 geseran
 
     def test_insert_tengah(self):
-        """Insert di tengah (PRIORITAS)."""
         a = Array(8)
         for i in range(4):
             a.append(i)  # [0, 1, 2, 3]
@@ -173,7 +160,6 @@ class TestArray(unittest.TestCase):
 
 
 class TestLinkList(unittest.TestCase):
-    """Tes Linked List."""
 
     def test_append_dan_len(self):
         ll = LinkList()
@@ -247,7 +233,6 @@ class TestLinkList(unittest.TestCase):
         val = ll.hapus(3)
         self.assertEqual(val, 3)
         self.assertEqual(len(ll), 3)
-        # Pastikan tail diperbarui
         self.assertEqual(ll.tail.nilai, 2)
 
     def test_hapus_invalid(self):
@@ -264,19 +249,15 @@ class TestLinkList(unittest.TestCase):
 
 
 class TestSisipanSama(unittest.TestCase):
-    """Pastikan tiga jenis sisipan menghasilkan urutan yang sama
-    di Array dan LinkList."""
 
     def _buat_pesanan(self, oid, prioritas):
         return Pesanan(oid, "Test", "Resto", "Menu", 10000,
                        prioritas, 0, '', 'ANTRE')
 
     def test_urutan_sisip_sama(self):
-        """VIP di depan, PRIORITAS di tengah, REGULER di belakang."""
         a = Array(8)
         ll = LinkList()
 
-        # Tambah 3 reguler
         for i in range(3):
             p = self._buat_pesanan(f"O-{i+1:06d}", 3)
             a.append(p)
@@ -305,10 +286,8 @@ class TestSisipanSama(unittest.TestCase):
 
 
 class TestManajerPesanan(unittest.TestCase):
-    """Tes pemuatan CSV dan operasi manajer."""
 
     def test_muat_csv(self):
-        """Tes muat CSV (hanya jika file ada)."""
         path = os.path.join(os.path.dirname(os.path.dirname(
             os.path.abspath(__file__))), 'data', 'pesanan.csv')
         if not os.path.exists(path):
