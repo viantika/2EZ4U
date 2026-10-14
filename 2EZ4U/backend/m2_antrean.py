@@ -1,16 +1,5 @@
-"""
-M2 - Stack dan Queue (Antrean)
-Modul untuk stack (postfix, undo/redo) dan antrean (naif & melingkar).
-"""
 import time as _time
-
-
-# ============================================================
-#  UTILITAS
-# ============================================================
-
 class Pencacah:
-    """Pencacah sederhana untuk menghitung perbandingan / pemindahan."""
     __slots__ = ('n',)
 
     def __init__(self):
@@ -24,32 +13,19 @@ class Pencacah:
 
 
 def _timer():
-    """Kembalikan waktu saat ini dalam detik (perf_counter)."""
     return _time.perf_counter()
 
 
 def _ms(awal, akhir):
-    """Hitung selisih waktu dalam milidetik."""
     return (akhir - awal) * 1000.0
 
-
-# ============================================================
-#  STACK (di atas Array buatan sendiri)
-# ============================================================
-
 class Stack:
-    """
-    Stack (tumpukan) LIFO di atas list Python sebagai petak memori.
-    Tidak menggunakan .pop() bawaan untuk logika — kita kelola sendiri.
-    """
-
     def __init__(self):
         self._data = [None] * 4
         self._size = 0
         self._kapasitas = 4
 
     def _tumbuh(self):
-        """Gandakan kapasitas saat penuh."""
         kap_baru = self._kapasitas * 2
         baru = [None] * kap_baru
         for i in range(self._size):
@@ -58,14 +34,12 @@ class Stack:
         self._kapasitas = kap_baru
 
     def push(self, nilai):
-        """Dorong nilai ke puncak tumpukan."""
         if self._size == self._kapasitas:
             self._tumbuh()
         self._data[self._size] = nilai
         self._size += 1
 
     def pop(self):
-        """Keluarkan dan kembalikan nilai di puncak. None jika kosong."""
         if self._size == 0:
             return None
         self._size -= 1
@@ -74,30 +48,21 @@ class Stack:
         return val
 
     def peek(self):
-        """Intip nilai di puncak tanpa mengeluarkan. None jika kosong."""
         if self._size == 0:
             return None
         return self._data[self._size - 1]
 
     def kosong(self):
-        """Apakah tumpukan kosong?"""
         return self._size == 0
 
     def __len__(self):
         return self._size
 
     def __iter__(self):
-        """Iterasi dari bawah ke atas (untuk tampilan)."""
         for i in range(self._size):
             yield self._data[i]
-
-
-# ============================================================
-#  KONVERSI INFIX → POSTFIX & EVALUASI
-# ============================================================
-
+            
 def _prioritas_op(op):
-    """Kembalikan prioritas operator. Lebih tinggi = lebih kuat."""
     if op in ('+', '-'):
         return 1
     if op in ('*', '/'):
@@ -106,10 +71,6 @@ def _prioritas_op(op):
 
 
 def _tokenisasi(ekspresi):
-    """
-    Pecah string ekspresi menjadi daftar token.
-    Angka berdigit banyak dijadikan satu token, misal '12000'.
-    """
     tokens = []
     i = 0
     s = ekspresi.strip()
@@ -119,7 +80,6 @@ def _tokenisasi(ekspresi):
             i += 1
             continue
         if ch.isdigit():
-            # Kumpulkan digit berurutan
             mulai = i
             while i < len(s) and s[i].isdigit():
                 i += 1
@@ -128,23 +88,11 @@ def _tokenisasi(ekspresi):
             tokens.append(ch)
             i += 1
         else:
-            # Karakter tak dikenal, lewati
             i += 1
     return tokens
 
 
 def ke_postfix(ekspresi):
-    """
-    Konversi ekspresi infix ke postfix menggunakan algoritma Shunting-Yard.
-
-    Parameter:
-        ekspresi (str): ekspresi infix, misal '( 3 * 12000 ) + ( 2 * 8500 ) - 5000'
-
-    Kembalikan:
-        (postfix_str, tabel_langkah, waktu_ms, modul)
-
-    tabel_langkah: list of tuple (no_langkah, token, tindakan, isi_stack, output)
-    """
     t0 = _timer()
     tokens = _tokenisasi(ekspresi)
     stack = Stack()
@@ -157,7 +105,6 @@ def ke_postfix(ekspresi):
         no = f"1.{langkah}"
 
         if token.isdigit():
-            # Operand -> langsung ke output
             output.append(token)
             tabel.append((no, token, "Operand -> output",
                           _stack_str(stack), ' '.join(output)))
@@ -168,17 +115,15 @@ def ke_postfix(ekspresi):
                           _stack_str(stack), ' '.join(output)))
 
         elif token == ')':
-            # Keluarkan operator sampai ketemu '('
             while not stack.kosong() and stack.peek() != '(':
                 op = stack.pop()
                 output.append(op)
             if not stack.kosong() and stack.peek() == '(':
-                stack.pop()  # Buang '('
+                stack.pop()  
             tabel.append((no, token, "Kurung tutup -> pop sampai '('",
                           _stack_str(stack), ' '.join(output)))
 
         elif token in '+-*/':
-            # Operator: keluarkan operator puncak yang lebih kuat atau sama kuat
             while (not stack.kosong() and
                    stack.peek() != '(' and
                    _prioritas_op(stack.peek()) >= _prioritas_op(token)):
@@ -188,7 +133,6 @@ def ke_postfix(ekspresi):
             tabel.append((no, token, "Operator -> pop yg >= lalu push",
                           _stack_str(stack), ' '.join(output)))
 
-    # Keluarkan sisa operator di stack
     while not stack.kosong():
         langkah += 1
         no = f"1.{langkah}"
@@ -203,16 +147,7 @@ def ke_postfix(ekspresi):
 
 
 def hitung_postfix(postfix_str, tabel_sebelumnya=None):
-    """
-    Evaluasi ekspresi postfix menggunakan stack angka.
-
-    Parameter:
-        postfix_str (str): ekspresi postfix, misal '3 12000 * 2 8500 * + 5000 -'
-        tabel_sebelumnya (list): tabel langkah dari ke_postfix (untuk dilanjutkan)
-
-    Kembalikan:
-        (hasil, tabel_langkah, waktu_ms, modul, pesan_galat)
-    """
+    
     t0 = _timer()
     tokens = postfix_str.strip().split()
     stack = Stack()
@@ -225,7 +160,6 @@ def hitung_postfix(postfix_str, tabel_sebelumnya=None):
         no = f"2.{langkah}"
 
         if token.lstrip('-').isdigit():
-            # Angka -> push ke stack
             stack.push(int(token))
             tabel.append((no, token, "Angka -> push",
                           _stack_nilai_str(stack), ""))
@@ -237,8 +171,8 @@ def hitung_postfix(postfix_str, tabel_sebelumnya=None):
                               _stack_nilai_str(stack), ""))
                 break
 
-            b = stack.pop()  # b duluan
-            a = stack.pop()  # baru a
+            b = stack.pop() 
+            a = stack.pop() 
 
             if token == '+':
                 hasil_op = a + b
@@ -253,7 +187,6 @@ def hitung_postfix(postfix_str, tabel_sebelumnya=None):
                                   _stack_nilai_str(stack), ""))
                     break
                 hasil_op = a / b
-                # Jika hasilnya bilangan bulat, konversi
                 if hasil_op == int(hasil_op):
                     hasil_op = int(hasil_op)
 
@@ -282,7 +215,6 @@ def hitung_postfix(postfix_str, tabel_sebelumnya=None):
 
 
 def _stack_str(stack):
-    """Representasi isi stack operator sebagai string."""
     items = []
     for item in stack:
         items.append(str(item))
@@ -290,29 +222,17 @@ def _stack_str(stack):
 
 
 def _stack_nilai_str(stack):
-    """Representasi isi stack nilai sebagai string."""
     items = []
     for item in stack:
         items.append(str(item))
     return ' '.join(items) if items else 'kosong'
 
-
-# ============================================================
-#  ANTREAN NAIF (dequeue menggeser semua elemen)
-# ============================================================
-
 class AntreanNaif:
-    """
-    Antrean FIFO di atas array biasa.
-    enqueue: tempel di belakang O(1).
-    dequeue: ambil indeks 0, geser seluruh sisa ke kiri O(n).
-    """
-
     def __init__(self):
         self._data = [None] * 8
         self._size = 0
         self._kapasitas = 8
-        self.total_geseran = 0  # Akumulasi total geseran
+        self.total_geseran = 0  
 
     def _tumbuh(self):
         """Gandakan kapasitas saat penuh."""
@@ -324,22 +244,16 @@ class AntreanNaif:
         self._kapasitas = kap_baru
 
     def enqueue(self, nilai):
-        """Tambahkan elemen ke belakang antrean."""
         if self._size == self._kapasitas:
             self._tumbuh()
         self._data[self._size] = nilai
         self._size += 1
 
     def dequeue(self):
-        """
-        Keluarkan elemen pertama. Geser seluruh sisa satu langkah ke kiri.
-        Kembalikan (nilai, jumlah_geseran). None jika kosong.
-        """
         if self._size == 0:
             return None, 0
         val = self._data[0]
         geseran = self._size - 1
-        # Geser manual satu per satu
         for i in range(self._size - 1):
             self._data[i] = self._data[i + 1]
         self._data[self._size - 1] = None
@@ -348,17 +262,14 @@ class AntreanNaif:
         return val, geseran
 
     def enqueue_depan(self, nilai):
-        """Sisipkan elemen di depan antrean (untuk undo DEQUEUE)."""
         if self._size == self._kapasitas:
             self._tumbuh()
-        # Geser semua ke kanan
         for i in range(self._size, 0, -1):
             self._data[i] = self._data[i - 1]
         self._data[0] = nilai
         self._size += 1
 
     def hapus_belakang(self):
-        """Hapus elemen terakhir (untuk undo ENQUEUE). Kembalikan nilai."""
         if self._size == 0:
             return None
         self._size -= 1
@@ -367,7 +278,6 @@ class AntreanNaif:
         return val
 
     def kosong(self):
-        """Apakah antrean kosong?"""
         return self._size == 0
 
     def __len__(self):
@@ -377,22 +287,7 @@ class AntreanNaif:
         for i in range(self._size):
             yield self._data[i]
 
-
-# ============================================================
-#  ANTREAN MELINGKAR (Circular Queue)
-# ============================================================
-
 class AntreanMelingkar:
-    """
-    Antrean FIFO melingkar (circular queue).
-    Menggunakan atribut: data, front, rear, count.
-    Saat penuh: tumbuh 2x dan salin berurutan mulai dari front.
-
-    Keputusan desain: tumbuh (bukan tolak) agar bisa menampung
-    seluruh pesanan ANTRE (~19.850 baris) tanpa menebak kapasitas
-    tepat di awal. Kapasitas awal 16 (pangkat dua).
-    """
-
     def __init__(self, kapasitas=16):
         self.data = [None] * kapasitas
         self.front = 0
@@ -401,10 +296,8 @@ class AntreanMelingkar:
         self._kapasitas = kapasitas
 
     def _tumbuh(self):
-        """Gandakan kapasitas. Salin elemen berurutan mulai front."""
         kap_baru = self._kapasitas * 2
         baru = [None] * kap_baru
-        # Salin dari front berurutan
         idx = self.front
         for i in range(self.count):
             baru[i] = self.data[idx]
@@ -415,7 +308,6 @@ class AntreanMelingkar:
         self._kapasitas = kap_baru
 
     def enqueue(self, nilai):
-        """Tambahkan elemen ke belakang. Tumbuh jika penuh."""
         if self.count == self._kapasitas:
             self._tumbuh()
         self.data[self.rear] = nilai
@@ -423,10 +315,6 @@ class AntreanMelingkar:
         self.count += 1
 
     def dequeue(self):
-        """
-        Keluarkan elemen terdepan. O(1), tanpa geseran.
-        Kembalikan None jika kosong.
-        """
         if self.count == 0:
             return None
         val = self.data[self.front]
@@ -436,7 +324,6 @@ class AntreanMelingkar:
         return val
 
     def enqueue_depan(self, nilai):
-        """Sisipkan elemen di depan (untuk undo DEQUEUE)."""
         if self.count == self._kapasitas:
             self._tumbuh()
         self.front = (self.front - 1) % self._kapasitas
@@ -444,7 +331,6 @@ class AntreanMelingkar:
         self.count += 1
 
     def hapus_belakang(self):
-        """Hapus elemen terakhir (untuk undo ENQUEUE). Kembalikan nilai."""
         if self.count == 0:
             return None
         self.rear = (self.rear - 1) % self._kapasitas
@@ -454,7 +340,6 @@ class AntreanMelingkar:
         return val
 
     def kosong(self):
-        """Apakah antrean kosong?"""
         return self.count == 0
 
     def __len__(self):
@@ -474,36 +359,19 @@ class AntreanMelingkar:
         """Statistik antrean melingkar: (front, rear, count, kapasitas)."""
         return (self.front, self.rear, self.count, self._kapasitas)
 
-
-# ============================================================
-#  MANAJER ANTREAN (mengelola kedua antrean + undo/redo)
-# ============================================================
-
 class ManajerAntrean:
-    """
-    Mengelola dua versi antrean (naif & melingkar) dan stack undo/redo.
-    Menerima referensi ke ManajerPesanan (M1) untuk akses data.
-    """
-
     def __init__(self):
         self.naif = AntreanNaif()
         self.circular = AntreanMelingkar()
         self._undo_stack = Stack()
         self._redo_stack = Stack()
-        self._manajer_pesanan = None  # Diisi setelah load
+        self._manajer_pesanan = None 
         self.terakhir_aksi = None
 
     def set_manajer_pesanan(self, mp):
-        """Set referensi ke ManajerPesanan dari M1."""
         self._manajer_pesanan = mp
 
     def muat_antrean(self, pesanan_antre):
-        """
-        Isi kedua antrean dengan pesanan berstatus ANTRE.
-        pesanan_antre: iterable of Pesanan dengan status='ANTRE'
-
-        Kembalikan: (jumlah, waktu_ms, modul)
-        """
         t0 = _timer()
         jumlah = 0
         for p in pesanan_antre:
@@ -514,21 +382,13 @@ class ManajerAntrean:
         return jumlah, _ms(t0, t1), "M2 - Antrean"
 
     def enqueue(self, pesanan):
-        """
-        Tambah pesanan ke belakang kedua antrean sekaligus.
-        Catat aksi untuk undo.
-
-        Kembalikan: (pesan, waktu_ms, modul)
-        """
         t0 = _timer()
         self.naif.enqueue(pesanan)
         self.circular.enqueue(pesanan)
 
-        # Catat untuk undo
         aksi = ("ENQUEUE", pesanan)
         self._undo_stack.push(aksi)
         self.terakhir_aksi = aksi
-        # Aksi baru → kosongkan redo
         self._kosongkan_redo()
 
         t1 = _timer()
@@ -537,14 +397,6 @@ class ManajerAntrean:
                 _ms(t0, t1), "M2 - Antrean")
 
     def dequeue_naif(self, k=1):
-        """
-        Keluarkan k pesanan dari antrean naif.
-        Keluarkan juga dari circular agar tetap sinkron.
-
-        Kembalikan: (daftar_pesanan, total_geseran_sesi, waktu_ms,
-                     info_circular, modul)
-        info_circular: (front, rear, kapasitas, count)
-        """
         t0 = _timer()
         keluar = []
         geseran_sesi = 0
@@ -557,12 +409,10 @@ class ManajerAntrean:
             geseran_sesi += ges
         t1 = _timer()
 
-        # Sinkronkan antrean circular di luar pengukuran waktu naif
         for _ in range(len(keluar)):
             self.circular.dequeue()
 
         if keluar:
-            # Catat untuk undo (simpan daftar pesanan)
             daftar_copy = list(keluar)
             aksi = ("DEQUEUE", daftar_copy)
             self._undo_stack.push(aksi)
@@ -575,13 +425,6 @@ class ManajerAntrean:
                 "M2 - Dequeue Naif")
 
     def dequeue_circular(self, k=1):
-        """
-        Keluarkan k pesanan dari antrean melingkar.
-        Keluarkan juga dari naif agar tetap sinkron.
-
-        Kembalikan: (daftar_pesanan, 0, waktu_ms,
-                     info_circular, modul)
-        """
         t0 = _timer()
         keluar = []
 
@@ -591,8 +434,7 @@ class ManajerAntrean:
                 break
             keluar.append(val_circ)
         t1 = _timer()
-
-        # Sinkronkan antrean naif di luar pengukuran waktu circular
+        
         for _ in range(len(keluar)):
             self.naif.dequeue()
 
@@ -609,14 +451,6 @@ class ManajerAntrean:
                 "M2 - Dequeue Circular")
 
     def undo_last(self):
-        """
-        Batalkan aksi terakhir.
-        - ENQUEUE: keluarkan dari belakang kedua antrean.
-        - DEQUEUE: kembalikan seluruh daftar ke depan kedua antrean.
-        - ORDER: tandai pesanan batal (jika ada referensi ManajerPesanan).
-
-        Kembalikan: (pesan, waktu_ms, modul)
-        """
         t0 = _timer()
         if self._undo_stack.kosong():
             t1 = _timer()
@@ -627,14 +461,12 @@ class ManajerAntrean:
         tipe, data = aksi
 
         if tipe == "ENQUEUE":
-            # Kebalikan: keluarkan dari belakang
             self.naif.hapus_belakang()
             self.circular.hapus_belakang()
             self._redo_stack.push(aksi)
             pesan = f"Undo ENQUEUE {data.oid}: dihapus dari belakang kedua antrean."
 
         elif tipe == "DEQUEUE":
-            # Kebalikan: kembalikan ke depan (urutan terbalik agar posisi benar)
             for i in range(len(data) - 1, -1, -1):
                 self.naif.enqueue_depan(data[i])
                 self.circular.enqueue_depan(data[i])
@@ -644,7 +476,6 @@ class ManajerAntrean:
                      f"dikembalikan ke depan kedua antrean.")
 
         elif tipe == "ORDER":
-            # Kebalikan: hapus pesanan dari M1
             if self._manajer_pesanan is not None:
                 idx_a = len(self._manajer_pesanan.array) - 1
                 idx_l = len(self._manajer_pesanan.linklist) - 1
@@ -661,12 +492,6 @@ class ManajerAntrean:
         return pesan, _ms(t0, t1), "M2 - Undo"
 
     def redo_last(self):
-        """
-        Ulangi aksi yang terakhir di-undo.
-        Kerjakan lagi aksi aslinya (bukan kebalikannya), push ke undo.
-
-        Kembalikan: (pesan, waktu_ms, modul)
-        """
         t0 = _timer()
         if self._redo_stack.kosong():
             t1 = _timer()
@@ -683,7 +508,6 @@ class ManajerAntrean:
             pesan = f"Redo ENQUEUE {data.oid}: ditambahkan kembali."
 
         elif tipe == "DEQUEUE":
-            # Kerjakan DEQUEUE ulang: keluarkan dari depan
             for _ in data:
                 self.naif.dequeue()
                 self.circular.dequeue()
@@ -692,7 +516,6 @@ class ManajerAntrean:
             pesan = f"Redo DEQUEUE: {len(data)} pesanan ({oids}) dikeluarkan lagi."
 
         elif tipe == "ORDER":
-            # Kerjakan ORDER ulang
             if self._manajer_pesanan is not None:
                 p = data
                 pri = p.prioritas
@@ -716,21 +539,14 @@ class ManajerAntrean:
         return pesan, _ms(t0, t1), "M2 - Redo"
 
     def catat_order(self, pesanan):
-        """Catat aksi ORDER ke undo stack (dipanggil dari M1 saat tambah pesanan)."""
         self._undo_stack.push(("ORDER", pesanan))
         self._kosongkan_redo()
 
     def _kosongkan_redo(self):
-        """Kosongkan redo stack (aksi baru membatalkan redo)."""
         while not self._redo_stack.kosong():
             self._redo_stack.pop()
 
     def history(self):
-        """
-        Kembalikan daftar riwayat undo & redo.
-        Return: (list_undo, list_redo)
-        Setiap item: (tipe_aksi, deskripsi)
-        """
         undo_list = []
         for item in self._undo_stack:
             tipe, data = item
@@ -760,32 +576,12 @@ class ManajerAntrean:
         return undo_list, redo_list
 
     def stats(self):
-        """
-        Kembalikan statistik antrean.
-        Return dict-like tuple:
-        (queue_len_naif, queue_len_circular, queue_kapasitas,
-         total_geseran, undo_depth, redo_depth)
-        """
         return (len(self.naif), len(self.circular),
                 self.circular.kapasitas,
                 self.naif.total_geseran,
                 len(self._undo_stack), len(self._redo_stack))
 
-
-# ============================================================
-#  FUNGSI KASIR (menghitung struk belanja)
-# ============================================================
-
 def hitung_struk(ekspresi):
-    """
-    Hitung struk belanja menggunakan konversi postfix & evaluasi.
-
-    Parameter:
-        ekspresi (str): ekspresi infix, misal '( 3 * 12000 ) + ( 2 * 8500 ) - 5000'
-
-    Kembalikan:
-        (postfix_str, hasil, tabel_langkah, waktu_ms, modul, pesan_galat)
-    """
     t0 = _timer()
     postfix_str, tabel_konversi, _, _ = ke_postfix(ekspresi)
     hasil, tabel_lengkap, _, _, galat = hitung_postfix(postfix_str, tabel_konversi)
@@ -794,16 +590,10 @@ def hitung_struk(ekspresi):
 
 
 def hitung(postfix):
-    """
-    Evaluasi ekspresi postfix memakai stack angka dan kembalikan totalnya.
-    Sesuai spesifikasi PDF M2: hitung(postfix) -> total.
-    """
     hasil, _, _, _, galat = hitung_postfix(postfix)
     if galat:
         raise ValueError(galat)
     return hasil
-
-
-# Alias sesuai spesifikasi OOP pada modul M2
+    
 stack = Stack
 queue = AntreanMelingkar
