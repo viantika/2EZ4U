@@ -1,17 +1,7 @@
-"""
-Skrip benchmark M3: Pengujian skala n vs perbandingan.
-Mengukur jumlah perbandingan dan waktu (ms) untuk:
-- Insertion Sort vs Merge Sort (n = 1.000, 2.000, 4.000, 8.000)
-- Linear Search vs Binary Search
-
-Jalankan:
-    python bench_m3.py
-"""
 import random
 import os
 import sys
 
-# Pastikan path modul terdeteksi
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from backend.m1_pesanan import ManajerPesanan, format_harga
@@ -48,7 +38,6 @@ def jalankan_benchmark():
     print("-" * 75)
 
     for n in ukuran_n:
-        # Ambil sampel data acak/asli sepanjang n
         sampel_ins = []
         sampel_merge = []
         for i in range(n):
@@ -86,13 +75,9 @@ def jalankan_benchmark():
     target = "O-008000"
     data_penuh = mp.array.to_list()
 
-    # Siapkan data terurut untuk binary search
     data_terurut, _, _, waktu_sort_awal, _, _ = merge_sort(list(data_penuh), "oid")
 
-    # Linear Search
     idx_l, _, b_lin, w_lin, _ = linear_search(data_penuh, target)
-
-    # Binary Search
     idx_b, _, b_bin, w_bin, _ = binary_search(data_terurut, target)
 
     print(f"Target OID       : {target}")
